@@ -55,5 +55,5 @@ See also the list of [contributors](https://github.com/IPGP/fdsn2nodes/contribut
 
 ## License
 
-This project is licensed under the GPLv3 license - see [License](LICENSE.txt) file for details.
+This project is licensed under the GNU General Pyblic License v3.0 - see [License](LICENSE) file for details.
 

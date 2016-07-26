@@ -7,12 +7,6 @@ Sismo.WebObs.fdsn2nodes connects to a FDSN webservice, gets channel inventory
 and creates a WebObs node architecture. It creates CLB and CNF files for all
 nodes.
 
-TODO :
-* Handle exception (file and dirs ownership, server availability, etc.)
-* Check argument values
-* Verbose mode
-* Specify WebObs PROC and VIEW for the NODES
-
 Examples :
 python fdsn2nodes.py -u http://hudson:8080 -n PF -o TEST -c FR -C HHZ -s "M*"
 
