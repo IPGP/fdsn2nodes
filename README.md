@@ -12,7 +12,7 @@ The program was developped using python2.7.
 
 The only dependency is [obspy](http://obspy.org/)
 
-### Installing
+### Installing and running
 
 Copy the file on your computer and run it as follows :
 
@@ -35,6 +35,13 @@ Example for PF network, french country code, 'XX' as node name prefix, stations 
 python fdsn2nodes.py -v -u http://hudson:8080 -n PF -C FR -P XX -s M* -c HH? \
                      -o TEST3 -e ISO-8859-1
 ```
+
+### ToDo
+
+* Handle exception (file and dirs ownership, server availability, etc.)
+* Check argument values
+* Verbose mode
+* Specify WebObs PROC and VIEW for the NODES
 
 ## Contributing
 
