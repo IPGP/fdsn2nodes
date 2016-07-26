@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.7
+#!/usr/local/bin/python
 # encoding: utf-8
 '''
 Sismo.WebObs.fdsn2nodes -- Converts FDSN inventory to WebObs Nodes.
@@ -17,7 +17,7 @@ python fdsn2nodes.py -v -u http://hudson:8080 -n PF -C FR -P XX -s M* -c HH? \
 
 @copyright:  2016 OVPF/IPGP. All rights reserved.
 
-@license:    TODO
+@license:    This project is licensed under the GNU General Pyblic License v3.0
 
 @contact:    boissier@ipgp.fr
 @deffield    updated: Updated
@@ -37,7 +37,7 @@ from obspy.core import UTCDateTime
 __all__ = []
 __version__ = 0.1
 __date__ = '2016-02-22'
-__updated__ = '2016-02-22'
+__updated__ = '2016-07-25'
 
 
 class NodesCreator(object):
@@ -200,7 +200,7 @@ def main(argv=None):
   Created by Patrice Boissier on %s.
   Copyright 2016 OVPF/IPGP. All rights reserved.
 
-  Licensed under
+  Licensed under the GNU General Pyblic License v3.0
 
   Distributed on an "AS IS" basis without warranties
   or conditions of any kind, either express or implied.
