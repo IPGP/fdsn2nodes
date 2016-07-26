@@ -120,7 +120,8 @@ class NodesCreator(object):
         cnf_file.close()
 
     def create_nodes_from_fdsn(self, base_url, network_code, station_codes,
-                               channel_codes, country_code="", node_prefix=""):
+                               channel_codes, location_codes, country_code="",
+                               node_prefix=""):
         '''
         Creates WebObs Nodes architecture and configuration files
 
@@ -143,41 +144,34 @@ class NodesCreator(object):
         endtime = UTCDateTime("2016-07-22")
         inventory = fdsn_client.get_stations(network=network_code,
                                              station=station_codes,
-                                             starttime=starttime,
-                                             endtime=endtime)
-        print(inventory)
-        # inventory.plot(projection="local")
-
-#         fdsn = FdsnWebService(hostname, tcp_port, base_url, network_code)
-#         # Parses stations
-#         stations = fdsn.parse_stations(station_name)
-#         for station in stations:
-#             print("Processing station %s..." % (station.get_name()))
-#             # Parses channels
-#             fdsn.parse_channels(channels, station)
-#             node_name = "%s%s%s%s" % (country_code, node_prefix,
-#                                       station.get_digitizer_type(),
-#                                       station.get_name())
-#             node_path = "%s/%s" % (self.output_dir, node_name)
-#             # Creates Node directory and files
-#             if not os.path.exists(node_path):
-#                 os.makedirs(node_path)
-#                 os.makedirs("%s/DOCUMENTS/THUMBNAILS" % (node_path))
-#                 os.makedirs("%s/FEATURES" % (node_path))
-#                 os.makedirs("%s/INTERVENTIONS" % (node_path))
-#                 os.makedirs("%s/PHOTOS/THUMBNAILS" % (node_path))
-#                 os.makedirs("%s/SCHEMAS/THUMBNAILS" % (node_path))
-#                 open("%s/acces.txt" % (node_path), 'a').close()
-#                 open("%s/info.txt" % (node_path), 'a').close()
-#                 open("%s/installation.txt" % (node_path), 'a').close()
-#                 open("%s/%s.kml" % (node_path, node_name), 'a').close()
-#                 open("%s/FEATURES/sensor.txt" % (node_path), 'a').close()
-#                 open("%s/INTERVENTIONS/%s_Projet.txt" %
-#                      (node_path, node_name), 'a').close()
-#                 self.create_cnf_file("%s/%s.cnf" % (node_path, node_name),
-#                                      station)
-#                 self.create_clb_file("%s/%s.clb" % (node_path, node_name),
-#                                      station)
+                                             channel=channel_codes,
+                                             location=location_codes,
+                                             level="response")
+        for network in inventory.networks:
+            print("Processing %s network" % (network.code))
+            for station in network.stations:
+                print("|--Processing %s station" % (station.code))
+                node_name = "%s%s%s" % (country_code, node_prefix,
+                                          station.code)
+                node_path = "%s/%s" % (self.output_dir, node_name)
+                if not os.path.exists(node_path):
+                    os.makedirs(node_path)
+                    os.makedirs("%s/DOCUMENTS/THUMBNAILS" % (node_path))
+                    os.makedirs("%s/FEATURES" % (node_path))
+                    os.makedirs("%s/INTERVENTIONS" % (node_path))
+                    os.makedirs("%s/PHOTOS/THUMBNAILS" % (node_path))
+                    os.makedirs("%s/SCHEMAS/THUMBNAILS" % (node_path))
+                    open("%s/acces.txt" % (node_path), 'a').close()
+                    open("%s/info.txt" % (node_path), 'a').close()
+                    open("%s/installation.txt" % (node_path), 'a').close()
+                    open("%s/%s.kml" % (node_path, node_name), 'a').close()
+                    open("%s/FEATURES/sensor.txt" % (node_path), 'a').close()
+                    open("%s/INTERVENTIONS/%s_Projet.txt" %
+                         (node_path, node_name), 'a').close()
+#                     self.create_cnf_file("%s/%s.cnf" % (node_path, node_name),
+#                                          station)
+#                     self.create_clb_file("%s/%s.clb" % (node_path, node_name),
+#                                          station)
 
 
 def main(argv=None):
@@ -227,6 +221,9 @@ USAGE
                             "Accepts wildcards and lists..")
         parser.add_argument("-c", "--channel-codes", dest="channel_codes",
                             help="Defines one or more SEED channel codes. "
+                            "Accepts wildcards and lists..")
+        parser.add_argument("-l", "--location-codes", dest="location_codes",
+                            help="Defines one or more SEED location codes. "
                             "Accepts wildcards and lists..")
         parser.add_argument("-o", "--output-dir", dest="output_dir",
                             help="Defines nodes directory output. "
@@ -295,6 +292,18 @@ USAGE
         else:
             channel_codes = "*"
 
+        # Location codes arg
+        location_codes = args.location_codes
+        if location_codes:
+            location_codes_re = re.compile('^([A-Z0-9]|\*|\?)+$')
+            if not location_codes_re.match(location_codes):
+                raise Exception('Invalid location code. Location code consist '
+                                'of two alphanumeric character. '
+                                'Wildcards (* and ?) accepted')
+        else:
+            location_codes = "*"
+
+
         # Output directory arg
         output_dir = args.output_dir
         if not output_dir:
@@ -312,6 +321,7 @@ USAGE
             node_creator = NodesCreator(output_dir, output_encoding)
             node_creator.create_nodes_from_fdsn(base_url, network_code,
                                                 station_codes, channel_codes,
+                                                location_codes,
                                                 country_code, node_prefix)
         else:
             sys.stderr.write("Mandatory argument missing,"
