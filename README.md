@@ -32,8 +32,14 @@ python fdsn2nodes.py -h
 Example for PF network, french country code, 'XX' as node name prefix, stations names starting with letter M, HH? channels, output nodes in TEST3 directory, files written in latin-1 encoding : 
 
 ```sh
-python fdsn2nodes.py -v -u http://hudson:8080 -n PF -C FR -P XX -s M* -c HH? \
+python fdsn2nodes.py -u http://eida.ipgp.fr -n PF -C FR -P XX -s M* -c HH? \
                      -o TEST3 -e ISO-8859-1
+```
+
+Example for IM network, US country code, PP as node prefix, Infrasound stations names starting with I0, output nodes in IMS directory :
+
+```sh
+python fdsn2nodes.py -u IRIS -n IM -C US -P PP -s I0* -o IMS
 ```
 
 ## Contributing
