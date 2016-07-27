@@ -57,7 +57,7 @@ class NodesCreator(object):
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-    def create_clb_file(self, file_name, station):
+    def create_clb_file(self, node_path, node_name, network_code, station):
         '''
         Creates WebObs Node calibration file
 
@@ -66,27 +66,56 @@ class NodesCreator(object):
         :type station: Station.
         :param station: the station.
         '''
-        clb_file = codecs.open(file_name, 'w', self.output_encoding)
-        for channel in station.get_channels():
-            (channel_start_date, channel_start_time) = channel.get_start_time()
+        file_name = "%s/%s.clb" % (node_path, node_name)
+        previous_channel_code = None
+        last_sample_rate = None
+        last_sensor = None
+        index = 0
+        lines = list()
+        for channel in station.channels:
+            if channel.code != previous_channel_code:
+                index += 1
+            print("|  |--Processing %s channel (%s)" % (channel.code,
+                                                        index))
+            previous_channel_code = channel.code
+            if channel.end_date is None:
+                last_sample_rate = channel.sample_rate
+                last_sensor = channel.sensor.type
+            start_date = channel.start_date.strftime("%Y-%m-%d")
+            start_time = channel.start_date.strftime("%H:%M")
+            unit = channel.response.instrument_sensitivity.input_units
+            gain = 1 / float(channel.response.instrument_sensitivity.value)
             channel_line = "%s|%s|%s|%s|%s||%s|0|%s|%s|||%s|%s|%s|%s|%s|%s" \
-                           "||%s\n" % (channel_start_date, channel_start_time,
-                                       channel.get_index(),
-                                       channel.get_channel_name(),
-                                       "um/s", channel.get_channel_name(),
-                                       str(channel.get_gain()), str(10 ** 6),
-                                       channel.get_azimuth(),
-                                       str(channel.get_latitude()),
-                                       str(channel.get_longitude()),
-                                       str(channel.get_elevation()),
-                                       str(channel.get_depth()),
-                                       str(channel.get_sample_rate()),
-                                       str(channel.get_location())
-                                       )
-            clb_file.write(channel_line)
+                           "||%s\n" % (start_date,
+                                       start_time,
+                                       str(index),
+                                       channel.code,
+                                       unit,
+                                       channel.code,
+                                       str(gain),
+                                       str(1),
+                                       channel.azimuth,
+                                       channel.latitude,
+                                       channel.longitude,
+                                       channel.elevation,
+                                       channel.depth,
+                                       channel.sample_rate,
+                                       channel.location_code)
+            lines.append(channel_line)
+        lines.sort()
+        clb_file = codecs.open(file_name, 'w', self.output_encoding)
+        for line in lines:
+            clb_file.write(line)
         clb_file.close()
+        self.create_cnf_file(node_path=node_path,
+                             node_name=node_name,
+                             network_code=network_code,
+                             station=station,
+                             sample_rate=last_sample_rate,
+                             sensor_description=last_sensor)
 
-    def create_cnf_file(self, file_name, station):
+    def create_cnf_file(self, node_path, node_name, network_code, station,
+                        sample_rate, sensor_description="NA"):
         '''
         Creates WebObs Node configuration file
 
@@ -95,22 +124,32 @@ class NodesCreator(object):
         :type station: Station.
         :param station: the station.
         '''
+        
+        file_name = "%s/%s.cnf" % (node_path, node_name)
+        print("Creating %s configuration file" % (file_name))
+        contents = station.get_contents()
         cnf_file = codecs.open(file_name, 'w', self.output_encoding)
         cnf_file.write("=key|value\n")
-        cnf_file.write('NAME|"%s"\n' % (station.get_site_name()))
-        cnf_file.write("ALIAS|%s\n" % (station.get_name()))
-        cnf_file.write("TYPE|%s\n" % (station.get_sensor_description()))
-        cnf_file.write("FID|%s\n" % (station.get_name()))
-        cnf_file.write("FDSN_NETWORK_CODE|%s\n" % (station.get_network()))
-        cnf_file.write("VALID|1\n")
-        cnf_file.write("LAT_WGS84|%s\n" % (str(station.get_latitude())))
-        cnf_file.write("LON_WGS84|%s\n" % (str(station.get_longitude())))
-        cnf_file.write("ALTITUDE|%s\n" % (str(station.get_elevation())))
+        cnf_file.write('NAME|"%s"\n' % (contents["stations"][0]))
+        cnf_file.write("ALIAS|%s\n" % (station.code))
+        cnf_file.write("TYPE|%s\n" % (sensor_description))
+        cnf_file.write("FID|%s\n" % (station.code))
+        cnf_file.write("FDSN_NETWORK_CODE|%s\n" % (network_code))
+        if station.is_active():
+            cnf_file.write("VALID|1\n")
+        else:
+            cnf_file.write("VALID|0\n")
+        cnf_file.write("LAT_WGS84|%s\n" % (str(station.latitude)))
+        cnf_file.write("LON_WGS84|%s\n" % (str(station.longitude)))
+        cnf_file.write("ALTITUDE|%s\n" % (str(station.elevation)))
         cnf_file.write("POS_DATE|%s\n" % (datetime.date.today().isoformat()))
         cnf_file.write("POS_TYPE|\n")
-        cnf_file.write("INSTALL_DATE|%s\n" % (station.get_start_date()))
-        cnf_file.write("END_DATE|%s\n" % (station.get_end_date()))
-        cnf_file.write("ACQ_RATE|%s\n" % (str(station.get_sample_rate())))
+        cnf_file.write("INSTALL_DATE|%s\n" % (station.creation_date.strftime("%Y-%m-%d")))
+        if station.termination_date is None:
+            cnf_file.write("END_DATE|NA\n")
+        else:
+            cnf_file.write("END_DATE|%s\n" % (station.termination_date.strftime("%Y-%m-%d")))
+        cnf_file.write("ACQ_RATE|%s\n" % (str(sample_rate)))
         cnf_file.write("UTC_DATA|+0\n")
         cnf_file.write("LAST_DELAY|1/24\n")
         cnf_file.write("FILES_FEATURES|sensor\n")
@@ -168,11 +207,10 @@ class NodesCreator(object):
                     open("%s/FEATURES/sensor.txt" % (node_path), 'a').close()
                     open("%s/INTERVENTIONS/%s_Projet.txt" %
                          (node_path, node_name), 'a').close()
-                    self.create_cnf_file("%s/%s.cnf" % (node_path, node_name),
-                                         station)
-#                     self.create_clb_file("%s/%s.clb" % (node_path, node_name),
-#                                          station)
-
+                    self.create_clb_file(node_path=node_path,
+                                         node_name=node_name,
+                                         network_code=network.code,
+                                         station=station)
 
 def main(argv=None):
     '''
@@ -318,11 +356,15 @@ USAGE
             print("Verbose mode on")
 
         if base_url and network_code:
-            node_creator = NodesCreator(output_dir, output_encoding)
-            node_creator.create_nodes_from_fdsn(base_url, network_code,
-                                                station_codes, channel_codes,
-                                                location_codes,
-                                                country_code, node_prefix)
+            node_creator = NodesCreator(output_dir=output_dir,
+                                        output_encoding=output_encoding)
+            node_creator.create_nodes_from_fdsn(base_url=base_url,
+                                                network_code=network_code,
+                                                station_codes=station_codes,
+                                                channel_codes=channel_codes,
+                                                location_codes=location_codes,
+                                                country_code=country_code,
+                                                node_prefix=node_prefix)
         else:
             sys.stderr.write("Mandatory argument missing,"
                              " for help use --help\n")
