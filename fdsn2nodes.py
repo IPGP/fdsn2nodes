@@ -168,8 +168,8 @@ class NodesCreator(object):
                     open("%s/FEATURES/sensor.txt" % (node_path), 'a').close()
                     open("%s/INTERVENTIONS/%s_Projet.txt" %
                          (node_path, node_name), 'a').close()
-#                     self.create_cnf_file("%s/%s.cnf" % (node_path, node_name),
-#                                          station)
+                    self.create_cnf_file("%s/%s.cnf" % (node_path, node_name),
+                                         station)
 #                     self.create_clb_file("%s/%s.clb" % (node_path, node_name),
 #                                          station)
 
