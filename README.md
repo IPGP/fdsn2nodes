@@ -8,7 +8,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisities
 
-The program was developped using python2.7.
+The program was developped using python2.7
 
 The only dependency is [obspy](http://obspy.org/)
 
@@ -17,11 +17,10 @@ The only dependency is [obspy](http://obspy.org/)
 Copy the file on your computer and run it as follows :
 
 ```sh
-python fdsn2nodes.py [-h] [-v] [-u BASE_URL] [-n NETWORK_CODE]
-                     [-C COUNTRY_CODE] [-P NODE_PREFIX] [-s STATION_CODES]
-                     [-c CHANNEL_CODES] [-o OUTPUT_DIR] [-e OUTPUT_ENCODING]
-                     [-V]
-```
+python fdsn2nodes.py [-h] [-v] -u BASE_URL -n NETWORK_CODE [-C COUNTRY_CODE]
+                     [-P NODE_PREFIX] [-s STATION_CODES] [-c CHANNEL_CODES]
+                     [-l LOCATION_CODES] [-o OUTPUT_DIR] [-e OUTPUT_ENCODING]
+                     [-V]```
 
 Invoke help :
 

@@ -39,6 +39,8 @@ from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from obspy.clients.fdsn import Client
 from obspy.core import UTCDateTime
+from __builtin__ import str
+from _ast import Str
 
 __all__ = []
 __version__ = 1.0
@@ -284,36 +286,47 @@ USAGE
         parser = ArgumentParser(description=program_license,
                                 formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument("-v", "--verbose", dest="verbose", action="count",
-                            help="set verbosity level [default: %(default)s]")
+                            help="set verbosity level [default: %(default)s]",
+                            required=False)
         parser.add_argument("-u", "--base-url", dest="base_url",
-                            help="Defines FDSN base URL. Mandatory.")
+                            help="Defines FDSN base URL. Mandatory.",
+                            required=True, type=str)
         parser.add_argument("-n", "--network", dest="network_code",
-                            help="Defines the network code. Mandatory.")
+                            help="Defines the network code. Mandatory.",
+                            required=True, type=str)
         parser.add_argument("-C", "--country", dest="country_code",
-                            help="Defines the country code. Optional.")
+                            help="Defines the country code. Optional.",
+                            required=False, type=str, default="")
         parser.add_argument("-P", "--node_prefix", dest="node_prefix",
-                            help="Defines the NODE name prefix code.")
+                            help="Defines the NODE name prefix code.",
+                            required=False, type=str, default="")
         parser.add_argument("-s", "--station-codes", dest="station_codes",
                             help="Defines one or more SEED station codes. "
-                            "Accepts wildcards and lists..")
+                            "Accepts wildcards and lists..",
+                            required=False, type=str, default="*")
         parser.add_argument("-c", "--channel-codes", dest="channel_codes",
                             help="Defines one or more SEED channel codes. "
-                            "Accepts wildcards and lists..")
+                            "Accepts wildcards and lists..",
+                            required=False, type=str, default="*")
         parser.add_argument("-l", "--location-codes", dest="location_codes",
                             help="Defines one or more SEED location codes. "
-                            "Accepts wildcards and lists..")
+                            "Accepts wildcards and lists..",
+                            required=False, type=str, default="*")
         parser.add_argument("-o", "--output-dir", dest="output_dir",
                             help="Defines nodes directory output. "
-                            "Default value : ./NODES")
+                            "Default value : ./NODES",
+                            required=False, type=str, default="./NODES")
         parser.add_argument("-e", "--output-encoding", dest="output_encoding",
                             help="Defines output files encoding. "
-                            "Default value : UTF-8")
+                            "Default value : UTF-8",
+                            required=False, type=str, default="utf_8")
         parser.add_argument('-V', '--version', action='version',
                             version=program_version_message)
 
         # Process arguments
         args = parser.parse_args()
 
+        print(args)
         # Verbose arg
         verbose = args.verbose
 
@@ -344,8 +357,6 @@ USAGE
             if not node_prefix_re.match(node_prefix):
                 raise Exception('Invalid node prefix. Node prefix consist '
                                 'of at least one alphanumeric character.')
-        else:
-            node_prefix = ""
 
         # Station codes arg
         station_codes = args.station_codes
@@ -355,8 +366,6 @@ USAGE
                 raise Exception('Invalid station code. Station code consist '
                                 'of at least one alphanumeric character. '
                                 'Wildcards (* and ?) accepted')
-        else:
-            station_codes = "*"
 
         # Channel codes arg
         channel_codes = args.channel_codes
@@ -366,8 +375,6 @@ USAGE
                 raise Exception('Invalid channel code. Channel code consist '
                                 'of at least one alphanumeric character. '
                                 'Wildcards (* and ?) accepted')
-        else:
-            channel_codes = "*"
 
         # Location codes arg
         location_codes = args.location_codes
@@ -377,37 +384,25 @@ USAGE
                 raise Exception('Invalid location code. Location code consist '
                                 'of two alphanumeric character. '
                                 'Wildcards (* and ?) accepted')
-        else:
-            location_codes = "*"
-
 
         # Output directory arg
         output_dir = args.output_dir
-        if not output_dir:
-            output_dir = "./NODES"
 
         # Output encoding arg
         output_encoding = args.output_encoding
-        if not output_encoding:
-            output_encoding = 'utf_8'
 
         if verbose > 0:
             print("Verbose mode on")
 
-        if base_url and network_code:
-            node_creator = NodesCreator(output_dir=output_dir,
-                                        output_encoding=output_encoding)
-            node_creator.create_nodes_from_fdsn(base_url=base_url,
-                                                network_code=network_code,
-                                                station_codes=station_codes,
-                                                channel_codes=channel_codes,
-                                                location_codes=location_codes,
-                                                country_code=country_code,
-                                                node_prefix=node_prefix)
-        else:
-            sys.stderr.write("Mandatory argument missing,"
-                             " for help use --help\n")
-
+        node_creator = NodesCreator(output_dir=output_dir,
+                                    output_encoding=output_encoding)
+        node_creator.create_nodes_from_fdsn(base_url=base_url,
+                                            network_code=network_code,
+                                            station_codes=station_codes,
+                                            channel_codes=channel_codes,
+                                            location_codes=location_codes,
+                                            country_code=country_code,
+                                            node_prefix=node_prefix)
         return 0
     except KeyboardInterrupt:
         print("Exiting...")
