@@ -159,11 +159,10 @@ class NodesCreator(object):
         '''
         
         file_name = "%s/%s.cnf" % (node_path, node_name)
-        contents = station.get_contents()
         # TODO : check if encoding is valid 
         cnf_file = codecs.open(file_name, 'w', self.output_encoding)
         cnf_file.write("=key|value\n")
-        cnf_file.write('NAME|"%s"\n' % (contents["stations"][0]))
+        cnf_file.write('NAME|"%s"\n' % (station.site.name))
         cnf_file.write("ALIAS|%s\n" % (station.code))
         cnf_file.write("TYPE|%s\n" % (sensor_description))
         cnf_file.write("FID|%s\n" % (station.code))
