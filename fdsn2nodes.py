@@ -35,12 +35,10 @@ import os
 import re
 import datetime
 import codecs
+import logging
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from obspy.clients.fdsn import Client
-from obspy.core import UTCDateTime
-from __builtin__ import str
-from _ast import Str
 
 __all__ = []
 __version__ = 1.0
@@ -57,10 +55,10 @@ class NodesCreator(object):
         Constructor
 
         :type output_dir: str
-        :param output_dir: A string reprensenting NODES 
+        :param output_dir: A string reprensenting NODES
             output directory.
         :type output_encoding: str
-        :param output_encoding: A string reprensenting output 
+        :param output_encoding: A string reprensenting output
             files encoding.
         '''
         self.output_dir = output_dir
@@ -71,7 +69,7 @@ class NodesCreator(object):
 
     def create_clb_file(self, node_path, node_name, network_code, station):
         '''
-        Creates WebObs Node calibration file from class 
+        Creates WebObs Node calibration file from class
         :class:`~obspy.core.inventory.station.Station`
 
         :type node_path: str
@@ -89,15 +87,15 @@ class NodesCreator(object):
         previous_channel_code = "NA"
         index = 0
         # A WebObs Node needs to have a sample rate and a sensor type
-        # at station level, so we use the last current ones we found 
+        # at station level, so we use the last current ones we found
         last_sample_rate = "NA"
         last_sensor = "NA"
         lines = list()
         for channel in station.channels:
             if channel.code != previous_channel_code:
                 index += 1
-            print("|  |--Processing %s channel (%s)" % (channel.code,
-                                                        index))
+            logging.info("|  |--Processing %s channel (%s)" % (channel.code,
+                                                               index))
             previous_channel_code = channel.code
             if channel.end_date is None and channel.sample_rate:
                 last_sample_rate = channel.sample_rate
@@ -106,7 +104,7 @@ class NodesCreator(object):
             start_date = channel.start_date.strftime("%Y-%m-%d")
             start_time = channel.start_date.strftime("%H:%M")
             unit = channel.response.instrument_sensitivity.input_units
-            gain = 1 / float(channel.response.instrument_sensitivity.value)            
+            gain = 1 / float(channel.response.instrument_sensitivity.value)
             channel_line = "%s|%s|%s|%s|%s||%s|0|%s|%s|||%s|%s|%s|%s|%s|%s" \
                            "||%s\n" % (start_date,
                                        start_time,
@@ -125,7 +123,7 @@ class NodesCreator(object):
                                        channel.location_code)
             lines.append(channel_line)
         lines.sort()
-        # TODO : check if encoding is valid 
+        # TODO : check if encoding is valid
         clb_file = codecs.open(file_name, 'w', self.output_encoding)
         for line in lines:
             clb_file.write(line)
@@ -142,7 +140,7 @@ class NodesCreator(object):
     def create_cnf_file(self, node_path, node_name, network_code, station,
                         sample_rate, sensor_description="NA"):
         '''
-        Creates WebObs Node configuration file from class 
+        Creates WebObs Node configuration file from class
         :class:`~obspy.core.inventory.station.Station`
 
         :type node_path: str
@@ -159,10 +157,10 @@ class NodesCreator(object):
         :type sensor_description: str, optional
         :param sensor_description: A string representing the sensor description
         '''
-        
+
         file_name = "%s/%s.cnf" % (node_path, node_name)
         contents = station.get_contents()
-        # TODO : check if encoding is valid 
+        # TODO : check if encoding is valid
         cnf_file = codecs.open(file_name, 'w', self.output_encoding)
         cnf_file.write("=key|value\n")
         cnf_file.write('NAME|"%s"\n' % (contents["stations"][0]))
@@ -179,11 +177,13 @@ class NodesCreator(object):
         cnf_file.write("ALTITUDE|%s\n" % (str(station.elevation)))
         cnf_file.write("POS_DATE|%s\n" % (datetime.date.today().isoformat()))
         cnf_file.write("POS_TYPE|\n")
-        cnf_file.write("INSTALL_DATE|%s\n" % (station.creation_date.strftime("%Y-%m-%d")))
+        cnf_file.write("INSTALL_DATE|%s\n" % (station.creation_date.
+                                              strftime("%Y-%m-%d")))
         if station.termination_date is None:
             cnf_file.write("END_DATE|NA\n")
         else:
-            cnf_file.write("END_DATE|%s\n" % (station.termination_date.strftime("%Y-%m-%d")))
+            cnf_file.write("END_DATE|%s\n" % (station.termination_date.
+                                              strftime("%Y-%m-%d")))
         cnf_file.write("ACQ_RATE|%s\n" % (str(sample_rate)))
         cnf_file.write("UTC_DATA|+0\n")
         cnf_file.write("LAST_DELAY|1/24\n")
@@ -205,16 +205,16 @@ class NodesCreator(object):
         :type network_code: str
         :param network_code: A string representing the FDSN network code.
         :type station_codes: str
-        :param station_codes: A string representing the FDSN station(s) 
+        :param station_codes: A string representing the FDSN station(s)
             (wildcard accepted).
         :type channel_codes: str
         :param channel_codes: A string representing the FDSN channel(s)
             (wildcard accepted).
         :type location_codes: str
-        :param location_codes: A string representing the FDSN location 
+        :param location_codes: A string representing the FDSN location
             code(s) (wildcard accepted).
         :type country_code: str, optional
-        :param country_code: A string representing the country code. 
+        :param country_code: A string representing the country code.
         :type node_prefix: str, optional
         :param node_prefix: A string representing the node prefix.
         '''
@@ -226,12 +226,12 @@ class NodesCreator(object):
                                              location=location_codes,
                                              level="response")
         for network in inventory.networks:
-            print("Processing %s network" % (network.code))
+            logging.info("Processing %s network" % (network.code))
             for station in network.stations:
-                print("|--Processing %s station" % (station.code))
+                logging.info("|--Processing %s station" % (station.code))
                 # Create node name and path
                 node_name = "%s%s%s" % (country_code, node_prefix,
-                                          station.code)
+                                        station.code)
                 node_path = "%s/%s" % (self.output_dir, node_name)
                 # Create file tree and files
                 if not os.path.exists(node_path):
@@ -252,6 +252,7 @@ class NodesCreator(object):
                                          node_name=node_name,
                                          network_code=network.code,
                                          station=station)
+
 
 def main(argv=None):
     '''
@@ -326,7 +327,7 @@ USAGE
         # Process arguments
         args = parser.parse_args()
 
-        print(args)
+        logging.debug(args)
         # Verbose arg
         verbose = args.verbose
 
@@ -361,7 +362,8 @@ USAGE
         # Station codes arg
         station_codes = args.station_codes
         if station_codes:
-            station_codes_re = re.compile('^([A-Z0-9]|\*|\?)+$')
+            station_codes_re = re.compile('^([A-Z0-9]|\*|\?)+'
+                                          '(,([A-Z0-9]|\*|\?)*)*$')
             if not station_codes_re.match(station_codes):
                 raise Exception('Invalid station code. Station code consist '
                                 'of at least one alphanumeric character. '
@@ -391,8 +393,14 @@ USAGE
         # Output encoding arg
         output_encoding = args.output_encoding
 
-        if verbose > 0:
-            print("Verbose mode on")
+        logging_level = logging.CRITICAL
+        if verbose == 1:
+            logging_level = logging.INFO
+            print("INFO mode on")
+        elif verbose > 1:
+            logging_level = logging.DEBUG
+            print("DEBUG mode on")
+        logging.basicConfig(stream=sys.stdout, level=logging_level)
 
         node_creator = NodesCreator(output_dir=output_dir,
                                     output_encoding=output_encoding)
