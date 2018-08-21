@@ -182,9 +182,14 @@ class NodesCreator(object):
         if station.termination_date is None:
             cnf_file.write("END_DATE|NA\n")
         else:
+<<<<<<< fdsn2nodes.ours.py
             cnf_file.write("END_DATE|%s\n" % (station.termination_date.
                                               strftime("%Y-%m-%d")))
         cnf_file.write("ACQ_RATE|%s\n" % (str(sample_rate)))
+=======
+            cnf_file.write("END_DATE|%s\n" % (station.termination_date.strftime("%Y-%m-%d")))
+        cnf_file.write("ACQ_RATE|1/%s\n" % (str(86400*sample_rate)))
+>>>>>>> fdsn2nodes.theirs.py
         cnf_file.write("UTC_DATA|+0\n")
         cnf_file.write("LAST_DELAY|1/24\n")
         cnf_file.write("FILES_FEATURES|sensor\n")
