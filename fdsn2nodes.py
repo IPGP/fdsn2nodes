@@ -43,7 +43,7 @@ from obspy.clients.fdsn import Client
 __all__ = []
 __version__ = 1.0
 __date__ = '2016-02-22'
-__updated__ = '2016-07-25'
+__updated__ = '2018-11-22'
 
 
 class NodesCreator(object):
@@ -168,10 +168,7 @@ class NodesCreator(object):
         cnf_file.write("TYPE|%s\n" % (sensor_description))
         cnf_file.write("FID|%s\n" % (station.code))
         cnf_file.write("FDSN_NETWORK_CODE|%s\n" % (network_code))
-        if station.is_active():
-            cnf_file.write("VALID|1\n")
-        else:
-            cnf_file.write("VALID|0\n")
+        cnf_file.write("VALID|1\n")
         cnf_file.write("LAT_WGS84|%s\n" % (str(station.latitude)))
         cnf_file.write("LON_WGS84|%s\n" % (str(station.longitude)))
         cnf_file.write("ALTITUDE|%s\n" % (str(station.elevation)))
