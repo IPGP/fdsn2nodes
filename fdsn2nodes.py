@@ -29,7 +29,9 @@ python fdsn2nodes.py -v -u http://hudson:8080 -n PF -C FR -P XX -s M* -c HH? \
     (https://www.gnu.org/copyleft/lesser.html)
 '''
 
+from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 import sys
 import os
 import re
@@ -327,6 +329,8 @@ USAGE
         logging.debug(args)
         # Verbose arg
         verbose = args.verbose
+        if verbose is None:
+            verbose = 0
 
         # Base URL arg
         base_url = args.base_url
@@ -399,8 +403,10 @@ USAGE
             print("DEBUG mode on")
         logging.basicConfig(stream=sys.stdout, level=logging_level)
 
+        print("Instanciation de NodeCreator")
         node_creator = NodesCreator(output_dir=output_dir,
                                     output_encoding=output_encoding)
+        print("Creation des NODES")
         node_creator.create_nodes_from_fdsn(base_url=base_url,
                                             network_code=network_code,
                                             station_codes=station_codes,
@@ -412,7 +418,7 @@ USAGE
     except KeyboardInterrupt:
         print("Exiting...")
         return 0
-    except Exception, e:
+    except Exception as e:
         indent = len(program_name) * " "
         sys.stderr.write(program_name + ": " + repr(e) + "\n")
         sys.stderr.write(indent + "  for help use --help\n")
